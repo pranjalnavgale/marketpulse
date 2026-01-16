@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarketPulse Settings - Vibrant Blue Edition</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons for aesthetic icons -->
+    <script type="module">
+        import lucide from 'https://cdn.jsdelivr.net/npm/lucide-esm@latest/umd/lucide.js';
+        lucide.createIcons();
+    </script>
+    <style>
+        :root {
+            /* Primary color changed to vibrant Blue */
+            --primary-color: #2563eb; /* Blue-600 */
+            /* Secondary color changed to high-contrast Sky/Cyan */
+            --secondary-color: #0ea5e9; /* Sky-500 for impact */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .settings-header {
+            /* Header border now Blue */
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 1rem;
+        }
+        .setting-card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease-in-out;
+            /* Card left border now vibrant Blue */
+            border-left: 4px solid #2563eb;
+        }
+        .setting-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(1.005);
+        }
+        /* Custom styling for the range input thumb for better aesthetics */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--secondary-color); /* Now Sky */
+            border-radius: 50%;
+            cursor: pointer;
+            /* Shadow adjusted to Sky color */
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.4);
+        }
+        /* Save button gradient for professional impact (Blue to Indigo) */
+        #save-button {
+            background-image: linear-gradient(to right, #2563eb, #4f46e5); /* Blue-600 to Indigo-600 */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        #save-button:hover {
+            transform: translateY(-2px);
+            /* Hover shadow adjusted to Blue */
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* Utility class for GSTIN details values to allow text wrapping for long addresses */
+        .gstin-value {
+            word-break: break-word;
+            max-width: 60%; /* Ensure text doesn't push the key out too much */
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Main Container -->
+    <div class="flex h-full">
+
+        <!-- Sidebar (Simplified for this example) -->
+        <aside class="w-64 bg-white p-6 shadow-xl hidden md:block border-r border-blue-100">
+            <h1 class="text-2xl font-extrabold text-gray-800 mb-8 flex items-center">
+                <!-- Logo icon now Sky for contrast -->
+                <span data-lucide="zap" class="text-sky-500 mr-2"></span>
+                MarketPulse
+            </h1>
+            <nav class="space-y-2">
+                <a href="#" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg">
+                    <span data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></span> Dashboard
+                </a>
+                <a href="#" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg">
+                    <span data-lucide="lightbulb" class="w-5 h-5 mr-3"></span> Insights
+                </a>
+                <a href="#" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg">
+                    <span data-lucide="database" class="w-5 h-5 mr-3"></span> MSME Data
+                </a>
+                <!-- Active link is now vibrant Blue -->
+                <a href="#" class="flex items-center p-3 text-white bg-blue-600 rounded-lg shadow-lg">
+                    <span data-lucide="settings" class="w-5 h-5 mr-3"></span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-4 md:p-10 overflow-y-auto">
+            <header class="mb-10 settings-header">
+                <h2 class="text-4xl font-extrabold text-gray-900">Application Settings</h2>
+                <p class="text-gray-600 mt-1">Manage your account, data tracking preferences, and notification delivery.</p>
+            </header>
+
+            <div class="space-y-8">
+
+                <!-- 1. Account & Business Profile (UPDATED with GSTIN Verification) -->
+                <section id="account-settings" class="setting-card bg-white p-8 rounded-xl">
+                    <div class="flex items-center mb-6">
+                        <!-- ICON: Sky Accent -->
+                        <span data-lucide="user" class="w-7 h-7 text-sky-500 mr-3"></span>
+                        <!-- TITLE: Bolder color Sky -->
+                        <h3 class="text-2xl font-bold text-sky-600">Account & Business Profile</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Update your personal contact details, security credentials, and key business identifiers.</p>
+
+                    <!-- Profile Photo and Basic Info -->
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center border-b border-gray-100 pb-6 mb-6">
+                        <div class="flex-shrink-0 mr-6 mb-4 sm:mb-0">
+                            <!-- Profile Photo Placeholder -->
+                            <img src="https://placehold.co/80x80/2563eb/ffffff?text=MP" alt="Profile Photo" class="w-20 h-20 rounded-full object-cover border-4 border-blue-200" id="profile-img">
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="text-lg font-semibold text-gray-800">Profile Picture</h4>
+                            <p class="text-sm text-gray-500 mb-2">Upload a new avatar for your profile (PNG or JPG).</p>
+                            <input type="file" id="profile-photo-upload" class="hidden" accept="image/png, image/jpeg">
+                            <label for="profile-photo-upload" class="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+                                <span data-lucide="upload-cloud" class="w-4 h-4 mr-2"></span> Change Photo
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile Form Fields - 3-column layout on large screens -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Col 1: Personal Contact -->
+                        <div>
+                            <label for="full-name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="full-name" placeholder="Enter your full name" value="Monali Pawar" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address (Read-Only)</label>
+                            <input type="email" id="email" value="monapawar0926@gmail.com" readonly class="w-full p-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 cursor-not-allowed">
+                        </div>
+
+                        <div>
+                            <label for="mobile-num" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                            <input type="tel" id="mobile-num" placeholder="e.g., 917587xxxx" value="9175879234" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                        </div>
+
+                        <!-- Col 2: Business Identity (Original GSTIN field retained for data saving) -->
+                        <div>
+                            <label for="enterprise-name" class="block text-sm font-medium text-gray-700 mb-1">Enterprise/Business Name</label>
+                            <input type="text" id="enterprise-name" placeholder="Enter your company name" value="ShadowHack Traders" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                        </div>
+
+                        <div>
+                            <label for="gstin-num" class="block text-sm font-medium text-gray-700 mb-1">GSTIN Number</label>
+                            <input type="text" id="gstin-num" placeholder="15-digit GST Identification Number" value="27AABBCC1234Z5" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                            <p class="text-xs text-gray-500 mt-1">Required for regulatory insights.</p>
+                        </div>
+
+                        <div>
+                            <label for="industry-sector" class="block text-sm font-medium text-gray-700 mb-1">Primary Industry Sector</label>
+                            <select id="industry-sector" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                <option>Manufacturing (General)</option>
+                                <option selected>Textiles & Garments</option>
+                                <option>IT & Software Services</option>
+                                <option>Food Processing</option>
+                                <option>Trading & Wholesale</option>
+                                <option>Other Services</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Helps refine AI trend models.</p>
+                        </div>
+
+                        <!-- NEW: Business Location - City -->
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <input type="text" id="city" placeholder="e.g., Pune" value="Pune" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                            <p class="text-xs text-gray-500 mt-1">For hyper-local market insights.</p>
+                        </div>
+
+                        <!-- NEW: Business Location - State -->
+                        <div>
+                            <label for="state" class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                            <input type="text" id="state" placeholder="e.g., Maharashtra" value="Maharashtra" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                            <p class="text-xs text-gray-500 mt-1">Helps filter local regulations.</p>
+                        </div>
+                        
+                        <!-- Empty slot to keep 3-column alignment clean on large screens -->
+                        <div class="hidden lg:block"></div> 
+                    </div>
+                    
+                    <!-- ----------------------------------------------- -->
+                    <!-- NEW: GSTIN Verification Section -->
+                    <!-- ----------------------------------------------- -->
+                    <div class="mt-8 pt-6 border-t border-gray-100">
+                        <!-- Section Header -->
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span data-lucide="scan-line" class="w-5 h-5 text-blue-600 mr-2"></span>
+                            GSTIN Verification Status
+                        </h4>
+                        <p class="text-sm text-gray-600 mb-4">Enter a GSTIN to instantly retrieve the corresponding business registration details from the mock GSTN system.</p>
+
+                        <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-6">
+                            <input type="text" id="gstin-input-verify" placeholder="Enter GSTIN (e.g., 27AAGCJ3688L1ZW)" class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm uppercase" maxlength="15">
+                            <button id="check-gstin-btn" class="flex-shrink-0 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-150 ease-in-out disabled:opacity-50">
+                                <span class="flex items-center justify-center">
+                                    <span data-lucide="search" class="w-5 h-5 mr-2"></span>
+                                    Check GSTIN
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- Result Display Area -->
+                        <div id="gstin-result-container" class="min-h-[50px]">
+                            <!-- Results will be injected here -->
+                        </div>
+                    </div>
+                    <!-- ----------------------------------------------- -->
+
+                    <!-- Action Links -->
+                    <div class="space-y-4 mt-8 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Change Account Password</span>
+                            <!-- Link text changed to Blue -->
+                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline">Update Security</button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">MSME Registration Details (Udyam)</span>
+                             <!-- Link text changed to Blue -->
+                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline">View/Edit Udyam Info</button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Export All Data</span>
+                            <button class="px-3 py-1 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 transition">Download Data</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Market Intelligence Configuration -->
+                <section id="data-settings" class="setting-card bg-white p-8 rounded-xl">
+                    <div class="flex items-center mb-6">
+                        <!-- ICON: Sky Accent -->
+                        <span data-lucide="trello" class="w-7 h-7 text-sky-500 mr-3"></span>
+                         <!-- TITLE: Bolder color Sky -->
+                        <h3 class="text-2xl font-bold text-sky-600">Market Intelligence Configuration</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Manage the HSN codes, competitors, and categories the AI Trend Radar should monitor for your business.</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="competitor-watchlist" class="block text-sm font-semibold text-gray-700 mb-1">Competitor Watchlist (Up to 3 Enterprises)</label>
+                            <input type="text" id="competitor-watchlist" placeholder="e.g., Reliance Textiles, Tata Foods, MSME Corp" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                            <p class="text-xs text-gray-500 mt-1">Enter specific names to prioritize competitor-driven insights.</p>
+                        </div>
+                        
+                        <div>
+                            <label for="hsn-codes" class="block text-sm font-semibold text-gray-700 mb-1">Tracked HSN Codes (Up to 5)</label>
+                            <!-- INPUT FOCUS: Sky Accent -->
+                            <input type="text" id="hsn-codes" placeholder="e.g., 6204, 8542, 3926" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                            <p class="text-xs text-gray-500 mt-1">Separate codes with commas. Edit this to refine your trend focus.</p>
+                        </div>
+                        <div>
+                            <label for="geographic-focus" class="block text-sm font-semibold text-gray-700 mb-1">Geographic Market Focus</label>
+                             <!-- INPUT FOCUS: Sky Accent -->
+                            <select id="geographic-focus" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                <option>India (National)</option>
+                                <option selected>Maharashtra & Gujarat (Regional)</option>
+                                <option>Global Exports (Specific Countries)</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-b border-gray-100 pb-3">
+                            <span class="font-medium text-gray-700">Reverse-Tracking for Unregistered MSME Alerts</span>
+                            <!-- Checkbox now Blue -->
+                            <input type="checkbox" checked class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <span class="font-medium text-gray-700">Regulatory & Compliance Change Alerts</span>
+                             <!-- Checkbox now Blue -->
+                            <input type="checkbox" checked class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <span class="font-medium text-gray-700">Track Competitor Benchmarks</span>
+                             <!-- Checkbox now Blue -->
+                            <input type="checkbox" class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        </div>
+                        <!-- Data Source Filtering -->
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Include Open Source Social/News Data</span>
+                             <!-- Checkbox now Blue -->
+                            <input type="checkbox" checked class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Notification & Alert Preferences -->
+                <section id="notification-settings" class="setting-card bg-white p-8 rounded-xl">
+                    <div class="flex items-center mb-6">
+                        <!-- ICON: Sky Accent -->
+                        <span data-lucide="bell" class="w-7 h-7 text-sky-500 mr-3"></span>
+                        <!-- TITLE: Bolder color Sky -->
+                        <h3 class="text-2xl font-bold text-sky-600">Notification & Alert Preferences</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Control when and how you receive real-time trend and regulation alerts.</p>
+
+                    <div class="space-y-4">
+                        <!-- WhatsApp Channel -->
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <span class="font-medium text-gray-700">Alert Delivery Channel (WhatsApp)</span>
+                             <!-- Checkbox now Blue -->
+                            <input type="checkbox" class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <span class="font-medium text-gray-700">Alert Delivery Channel (Email)</span>
+                             <!-- Checkbox now Blue -->
+                            <input type="checkbox" checked class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <span class="font-medium text-gray-700">Daily Insight Digest</span>
+                             <!-- Checkbox now Blue -->
+                            <input type="checkbox" class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        </div>
+                         <!-- Alert Language Preference -->
+                        <div class="pb-3 border-b border-gray-100">
+                            <label for="alert-language" class="block text-sm font-semibold text-gray-700 mb-1">Real-Time Alert Language</label>
+                            <!-- INPUT FOCUS: Sky Accent -->
+                            <select id="alert-language" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                <option selected>English</option>
+                                <option>Hindi (हिंदी)</option>
+                                <option>Marathi (मराठी)</option>
+                                <option>Bengali (বাংলা)</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">This controls the language for critical, multilingual trend alerts.</p>
+                        </div>
+                        <div>
+                            <label for="alert-sensitivity" class="block text-sm font-semibold text-gray-700 mb-1">Alert Sensitivity</label>
+                            <!-- INPUT FOCUS: Sky Accent -->
+                            <select id="alert-sensitivity" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                <option>High (Receive all minor shifts)</option>
+                                <option selected>Medium (Recommended: Major & moderate shifts)</option>
+                                <option>Low (Only critical and regulatory changes)</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Application Settings -->
+                <section id="app-settings" class="setting-card bg-white p-8 rounded-xl">
+                    <div class="flex items-center mb-6">
+                        <!-- ICON: Sky Accent -->
+                        <span data-lucide="globe" class="w-7 h-7 text-sky-500 mr-3"></span>
+                        <!-- TITLE: Bolder color Sky -->
+                        <h3 class="2xl font-bold text-sky-600">Application Settings</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Change the display language and theme of the MarketPulse dashboard.</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="display-language" class="block text-sm font-semibold text-gray-700 mb-1">Dashboard Display Language</label>
+                            <!-- INPUT FOCUS: Sky Accent -->
+                            <select id="display-language" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                <option selected>English</option>
+                                <option>Hindi</option>
+                                <option>Marathi</option>
+                                <option>Bengali</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">This controls the language of the dashboard UI and summaries.</p>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Dark Mode</span>
+                             <!-- Checkbox now Blue -->
+                            <input type="checkbox" class="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 5. Integration & API Access -->
+                <section id="integration-settings" class="setting-card bg-white p-8 rounded-xl">
+                    <div class="flex items-center mb-6">
+                        <!-- ICON: Sky Accent -->
+                        <span data-lucide="plug-2" class="w-7 h-7 text-sky-500 mr-3"></span>
+                        <!-- TITLE: Bolder color Sky -->
+                        <h3 class="2xl font-bold text-sky-600">Integration & API Access</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Connect MarketPulse with other business tools and manage external data access.</p>
+
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <span class="font-medium text-gray-700">Connect to Accounting Software (Tally/QuickBooks)</span>
+                            <button class="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded hover:bg-green-600 transition">Connect</button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Generate Read-Only API Key</span>
+                            <!-- Button now Blue -->
+                            <button class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded hover:bg-blue-600 transition">Generate Key</button>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 6. Data Management & Privacy -->
+                <section id="privacy-settings" class="setting-card bg-white p-8 rounded-xl">
+                    <div class="flex items-center mb-6">
+                        <!-- ICON: Sky Accent -->
+                        <span data-lucide="shield-check" class="w-7 h-7 text-sky-500 mr-3"></span>
+                        <!-- TITLE: Bolder color Sky -->
+                        <h3 class="2xl font-bold text-sky-600">Data Management & Privacy</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Control how your historical data is handled by our systems.</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="data-retention" class="block text-sm font-semibold text-gray-700 mb-1">Historical Trend Data Retention</label>
+                            <!-- INPUT FOCUS: Sky Accent -->
+                            <select id="data-retention" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                <option>1 Year (Recommended)</option>
+                                <option>3 Years</option>
+                                <option>5 Years (Maximum)</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="font-medium text-gray-700 text-red-600">Permanently Delete Account & Data</span>
+                            <button class="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded hover:bg-red-600 transition">Request Deletion</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. AI Model & Insight Customization (UPDATED with Quantitative Threshold) -->
+                <section id="ai-model-settings" class="setting-card bg-white p-8 rounded-xl">
+                    <div class="flex items-center mb-6">
+                        <!-- ICON: Sky Accent -->
+                        <span data-lucide="cpu" class="w-7 h-7 text-sky-500 mr-3"></span>
+                        <!-- TITLE: Bolder color Sky -->
+                        <h3 class="2xl font-bold text-sky-600">AI Model & Insight Customization</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Fine-tune the intelligence engine to match your strategic planning needs.</p>
+
+                    <div class="space-y-4">
+                        <!-- NEW: Quantitative Trend Threshold -->
+                        <div>
+                            <label for="trend-threshold" class="block text-sm font-semibold text-gray-700 mb-1">Minimum Alert Threshold (Volume % Change)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="trend-threshold" min="1" max="50" value="10" class="w-24 p-2 border border-gray-300 rounded-l-lg focus:ring-sky-500 focus:border-sky-500 text-center">
+                                <span class="p-2 bg-gray-100 border border-gray-300 border-l-0 rounded-r-lg text-gray-600 font-medium">% Change</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Only trigger alerts when market volume changes by this minimum percentage.</p>
+                        </div>
+                        
+                        <div>
+                            <label for="trend-horizon" class="block text-sm font-semibold text-gray-700 mb-1">Trend Forecasting Horizon</label>
+                            <!-- INPUT FOCUS: Sky Accent -->
+                            <select id="trend-horizon" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                <option>Short-Term (3 months)</option>
+                                <option selected>Mid-Term (6 months)</option>
+                                <option>Long-Term (1 year)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="tip-style" class="block text-sm font-semibold text-gray-700 mb-1">Actionable Tip Style Preference</label>
+                            <!-- INPUT FOCUS: Sky Accent -->
+                            <select id="tip-style" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                <option selected>Balanced (Growth & Risk)</option>
+                                <option>Prioritize Growth Opportunities</option>
+                                <option>Prioritize Risk Mitigation & Warnings</option>
+                            </select>
+                        </div>
+                        <div class="pt-2">
+                            <span class="font-medium text-gray-700 block mb-3">Trend Signal Sensitivity (Iterative Scoring)</span>
+                            <!-- The thumb is now Sky via CSS -->
+                            <input type="range" min="1" max="5" value="3" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg" id="sensitivity-range">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Low Sensitivity (Only Strong Signals)</span>
+                                <span>High Sensitivity (Detect Minor Shifts)</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 8. Support & Troubleshooting -->
+                <section id="support-settings" class="setting-card bg-white p-8 rounded-xl">
+                    <div class="flex items-center mb-6">
+                        <!-- ICON: Sky Accent -->
+                        <span data-lucide="life-buoy" class="w-7 h-7 text-sky-500 mr-3"></span>
+                        <!-- TITLE: Bolder color Sky -->
+                        <h3 class="2xl font-bold text-sky-600">Support & Troubleshooting</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Access help resources and review system logs for debugging purposes.</p>
+
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <span class="font-medium text-gray-700">Contact Technical Support</span>
+                            <!-- Link text changed to Blue -->
+                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline">Open Support Chat</button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">View Diagnostic Logs</span>
+                            <button class="text-gray-600 hover:text-gray-800 text-sm font-medium hover:underline">Download Logs</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Save Button (Impactful Gradient) -->
+                <div class="pt-4 flex justify-end">
+                    <button id="save-button" class="px-8 py-3 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition duration-200">
+                        Save All Changes
+                    </button>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Simple in-app messaging, photo update, and NEW GSTIN logic -->
+    <script>
+        // Mock data structure for the GSTIN verification response
+        const MOCK_GSTIN_DATA = {
+            '27AAGCJ3688L1ZW': {
+                'Business Legal Name': 'JALGAON INFRA PRIVATE LIMITED',
+                'Trade Name': 'JALGAON INFRA PRIVATE LIMITED',
+                'Business Type': 'Private Limited Company',
+                'Registration Type': 'Regular',
+                'Registration Date': '17/12/2024',
+                'Status': 'Active',
+                'Jurisdiction': 'State - CBIC, Zone - NAGPUR, Commissionerate - NASHIK, Division - JALGAON DIVISION, Range - JALGAON-I RANGE',
+                'Address': 'Plot No.13, Gat No. 194/1, Thrimurti Housing Society, Pimprala Road, Behind Bhavani Mata Mandir, Pimparla, Jalgaon, Maharashtra, 425001'
+            }
+        };
+
+        /**
+         * Renders the GSTIN verification result card (success or error).
+         * @param {object | null} data - The fetched GSTIN details.
+         * @param {'success' | 'error'} status - The status of the verification.
+         * @param {string} message - The status message.
+         */
+        function renderGSTINResult(data, status, message) {
+            const container = document.getElementById('gstin-result-container');
+            container.innerHTML = ''; // Clear previous results
+
+            let icon, iconColor, statusBorderColor, statusBgColor, messageColor;
+            
+            if (status === 'success') {
+                icon = 'check-circle';
+                iconColor = 'text-green-500';
+                statusBorderColor = 'border-green-500';
+                statusBgColor = 'bg-green-50';
+                messageColor = 'text-green-700';
+                
+                // Build the details list based on the requested order and keys
+                const detailsHtml = Object.keys(data).map(key => `
+                    <div class="flex justify-between items-start py-2 border-b border-gray-100 last:border-b-0">
+                        <span class="text-sm font-medium text-gray-500">${key}</span>
+                        <span class="text-sm font-semibold text-gray-800 text-right gstin-value">${data[key]}</span>
+                    </div>
+                `).join('');
+
+                container.innerHTML = `
+                    <div class="border-2 ${statusBorderColor} ${statusBgColor} p-6 rounded-xl shadow-lg transition duration-300">
+                        <!-- Status Header -->
+                        <div class="flex items-center mb-4 pb-4 border-b border-gray-200">
+                            <span data-lucide="${icon}" class="w-6 h-6 ${iconColor} mr-3"></span>
+                            <p class="text-lg font-bold ${messageColor}">${message}</p>
+                        </div>
+                        <!-- Details Body -->
+                        <div class="space-y-1">
+                            ${detailsHtml}
+                        </div>
+                    </div>
+                `;
+            } else { // status === 'error'
+                icon = 'alert-triangle';
+                iconColor = 'text-red-500';
+                statusBorderColor = 'border-red-500';
+                statusBgColor = 'bg-red-50';
+                messageColor = 'text-red-700';
+                
+                container.innerHTML = `
+                    <div class="border-2 ${statusBorderColor} ${statusBgColor} p-6 rounded-xl shadow-lg transition duration-300">
+                        <!-- Status Header -->
+                        <div class="flex items-center">
+                            <span data-lucide="${icon}" class="w-6 h-6 ${iconColor} mr-3"></span>
+                            <p class="text-lg font-bold ${messageColor}">${message}</p>
+                        </div>
+                        <p class="text-sm text-red-600 mt-2">Please check the number and try again. For system issues, contact technical support.</p>
+                    </div>
+                `;
+            }
+            // Re-create icons after injecting new HTML
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        /**
+         * Main function to simulate the GSTIN verification process.
+         */
+        function checkGSTIN() {
+            const inputField = document.getElementById('gstin-input-verify');
+            const button = document.getElementById('check-gstin-btn');
+            const gstin = inputField.value.trim().toUpperCase();
+            const container = document.getElementById('gstin-result-container');
+
+            // Simple GSTIN pattern validation (2 digits, 5 chars, 4 digits, 1 char, 1 char, Z, 1 char)
+            const gstinPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+            if (gstin.length === 0) {
+                renderGSTINResult(null, 'error', 'Please enter a GSTIN to proceed with verification.');
+                return;
+            }
+            
+            if (!gstinPattern.test(gstin)) {
+                renderGSTINResult(null, 'error', 'Invalid Format: The GSTIN must be a 15-digit alphanumeric code (e.g., 27AAGCJ3688L1ZW).');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = '<span class="flex items-center justify-center"><span data-lucide="loader-2" class="w-5 h-5 mr-2 animate-spin"></span>Checking...</span>';
+            container.innerHTML = `<div class="p-6 text-center text-blue-600 font-medium">Fetching details from GSTN...</div>`;
+
+            // Simulate API call delay (1.5 seconds)
+            setTimeout(() => {
+                const data = MOCK_GSTIN_DATA[gstin];
+                
+                if (data) {
+                    renderGSTINResult(data, 'success', 'Verification Successful! Details fetched from GSTN.');
+                } else {
+                    renderGSTINResult(null, 'error', 'Verification Failed: GSTIN details not found or inactive.');
+                }
+
+                button.innerHTML = '<span class="flex items-center justify-center"><span data-lucide="search" class="w-5 h-5 mr-2"></span>Check GSTIN</span>';
+                button.disabled = false;
+            }, 1500); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const saveButton = document.getElementById('save-button');
+            const profileUpload = document.getElementById('profile-photo-upload');
+            const profileImg = document.getElementById('profile-img');
+            const checkGstinButton = document.getElementById('check-gstin-btn');
+
+            if (checkGstinButton) {
+                checkGstinButton.addEventListener('click', checkGSTIN);
+            }
+
+            saveButton.addEventListener('click', () => {
+                // Display a mock success message using the Sky accent
+                const messageContainer = document.createElement('div');
+                messageContainer.className = 'fixed bottom-6 right-6 bg-sky-600 text-white p-4 rounded-xl shadow-2xl transition-opacity duration-300 text-sm font-bold';
+                messageContainer.textContent = 'Configuration saved successfully! AI Trend Radar updated.';
+                document.body.appendChild(messageContainer);
+
+                setTimeout(() => {
+                    messageContainer.style.opacity = '0';
+                    messageContainer.addEventListener('transitionend', () => messageContainer.remove());
+                }, 3000);
+            });
+            
+            // Mock profile photo upload logic
+            if (profileUpload) {
+                profileUpload.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        const file = e.target.files[0];
+                        const fileName = file.name;
+                        
+                        // 1. Update the image source (Client-side visual feedback)
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            if (profileImg) {
+                                profileImg.src = event.target.result;
+                            }
+                        };
+                        reader.readAsDataURL(file);
+
+                        // 2. Display temporary feedback message
+                        const photoFeedback = document.createElement('div');
+                        // Use a relative position container for the absolute message
+                        const parentContainer = document.querySelector('#account-settings .flex-grow');
+                        if (parentContainer) {
+                            photoFeedback.className = 'absolute top-0 right-0 p-2 bg-blue-100 text-blue-800 text-xs rounded-lg shadow-md';
+                            photoFeedback.textContent = `Photo: ${fileName.substring(0, 15)}... selected. (Uploading...)`;
+                            parentContainer.appendChild(photoFeedback);
+                            
+                            setTimeout(() => photoFeedback.remove(), 2500);
+                        }
+
+                        // In a real app, you would upload the file to a storage service (like Firebase Storage) here.
+                        console.log('New file selected:', fileName);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+import pandas as pd
+import json
+from engines.trend_engine import detect_trends
+
+# ------------- MANUAL TEST CONFIG ----------------
+# You can change the CSV path or add sample data here
+CSV_PATH = "data/prices.csv"
+
+# Create a small manual dataset if not present
+try:
+    df = pd.read_csv(CSV_PATH)
+    print(f"✅ Loaded existing CSV: {CSV_PATH}")
+except FileNotFoundError:
+    print("⚠ CSV not found — creating a demo dataset...")
+    df = pd.DataFrame({
+        "date": pd.date_range("2024-10-01", periods=10, freq="D"),
+        "material": ["cotton"] * 10,
+        "price": [100, 101, 102, 103, 102, 104, 105, 107, 108, 110]
+    })
+    df.to_csv(CSV_PATH, index=False)
+    print(f"Demo CSV saved to {CSV_PATH}")
+
+# ------------- RUN TREND DETECTION ----------------
+print("\n🚀 Running trend detection...\n")
+result = detect_trends()
+
+# ------------- DISPLAY OUTPUT ----------------
+print("📊 TREND RESULT")
+print(json.dumps(result, indent=2))
+
+# Save test results separately
+with open("data/trend_test_output.json", "w") as f:
+    json.dump(result, f, indent=2)
+print("\n✅ Results saved to data/trend_test_output.json\n")

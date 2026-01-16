@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARKETPULSE - Real-Time AI Insights</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+/* Custom Variables */
+:root {
+--primary-color: #4f46e5; /* Indigo-700 */
+--secondary-color: #10b981; /* Emerald-500 */
+--alert-risk: #ef4444; /* Red-500 */
+--alert-opportunity: #10b981; /* Emerald-500 */
+}
+
+    /* Apply Inter font globally and ensure smooth scrolling */
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc; /* Slate-50 */
+        color: #1f2937; /* Gray-800 */
+    }
+
+    /* Gauge text animation for visual flair */
+    @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .gauge-text {
+        animation: fadeInScale 0.8s ease-out;
+    }
+
+    /* Simple hover effect for cards */
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 4, 0, 0.05);
+    }
+
+    /* Standard Modal Overlay */
+    .modal-overlay {
+        position: fixed;
+_       top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .modal-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 600px;
+        transform: translateY(-20px);
+        transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.open .modal-content {
+        transform: translateY(0);
+    }
+
+    /* Trend Feedback icons */
+    .feedback-icons {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .feedback-icons button {
+        background-color: #e2e8f0; /* Gray-200 */
+        padding: 6px 10px;
+        border-radius: 9999px; /* Full rounded */
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        transition: background-color 0.2s;
+    }
+    .feedback-icons button:hover {
+        background-color: #cbd5e1; /* Gray-300 */
+    }
+    .feedback-icons button.selected {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    .feedback-icons button.selected.dislike {
+        background-color: var(--alert-risk);
+    }
+    
+    /* Custom Ring for Reverse Tracking (used for dynamic color) */
+    .score-ring-good {
+        --tw-ring-color: #10b981; /* Emerald-500 */
+    }
+    .score-ring-moderate {
+        --tw-ring-color: #fbbf24; /* Amber-400 */
+    }
+    .score-ring-low {
+        --tw-ring-color: #ef4444; /* Red-500 */
+    }
+
+    /* Checklist specific styling */
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+        cursor: pointer;
+    }
+    .checklist-item:last-child {
+        border-bottom: none;
+    }
+    .checklist-item input[type="checkbox"] {
+        margin-right: 15px;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--primary-color);
+        border-radius: 4px;
+        cursor: pointer;
+        outline: none;
+        position: relative;
+    }
+    .checklist-item input[type="checkbox"]:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    .checklist-item input[type="checkbox"]:checked::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 14px;
+    }
+    .checklist-item.completed label {
+        text-decoration: line-through;
+        color: #9ca3af; /* Gray-400 */
+    }
+
+</style>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'primary': '#4f46e5',
+            _       'secondary': '#10b981',
+                    'risk': '#ef4444',
+                    'opportunity': '#10b981',
+                }
+            }
+        }
+    }
+</script>
+</head>
+<body class="p-4 sm:p-6 lg:p-10">
+
+<div class="max-w-7xl mx-auto">
+    <header class="pb-4 mb-6 border-b-4 border-indigo-200 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <div class="text-left">
+            <h1 class="text-3xl font-extrabold text-primary tracking-tight sm:text-4xl" data-i18n="header-title">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-primary">
+                    MARKETPULSE
+                </span> AI Trend Radar
+            </h1>
+            <p class="mt-1 text-base text-gray-500" data-i18n="header-subtitle">Actionable tips, strategic foresight, and compliance alerts for your MSME.</p>
+        </div>
+                <div class="mt-4 sm:mt-0 flex items-center gap-4">
+                         <select id="language-selector" onchange="setLanguage(this.value)" class="p-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-primary focus:border-primary transition duration-150">
+                <option value="en">English (EN)</option>
+                <option value="hi">Hindi (HI)</option>
+            </select>
+            <button class="flex items-center p-3 bg-white rounded-full shadow-md hover:bg-gray-100 transition duration-150">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary h-6 w-6">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+    _       </button>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-2">
+            
+            <div class="mb-6 flex flex-col sm:flex-row gap-4 sm:gap-0 justify-between items-center bg-white p-4 rounded-xl shadow">
+                <input type="text" id="insight-search" data-i18n-placeholder="search-placeholder" placeholder="Search by HSN code, product, or region..." class="w-full sm:w-2/4 p-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition duration-150">
+                <div class="flex w-full sm:w-2/4 sm:ml-4 gap-4">
+                    <button class="w-1/2 p-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition duration-150 flex items-center justify-center" data-i18n="search-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+        _               </svg>
+                        Search
+                    </button>
+                    <button onclick="exportData()" class="w-1/2 p-2 bg-secondary text-white rounded-lg hover:bg-emerald-600 transition duration-150 flex items-center justify-center" data-i18n="export-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export Data
+                    </button>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700 border-l-4 border-secondary pl-3" data-i18n="trends-header">Market Trends Intelligence</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                
+                                <div class="card-hover transition duration-300 bg-white p-5 rounded-xl shadow-lg hover:shadow-xl flex flex-col justify-between" data-trend-id="trend-1" data-hsn="6109">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2 truncate" data-i18n="trend1-title">Top Emerging Trend</h3>
+                        <div class="trend-value text-3xl sm:text-4xl font-bold text-opportunity leading-none" data-trend-value="+85%">+85%</div>
+                        <span class="text-sm text-opportunity font-semibold mt-1 block" data-i18n="trend1-subtitle">Demand Growth (MoM)</span>
+                        <span class="text-xs text-gray-400 mt-1 block hsn-label">HSN: 6109 (Organic Cotton Tees)</span>
+                    </div>
+                    <div class="feedback-icons">
+                        <button onclick="giveFeedback(this, 'like')" data-feedback="like" data-i18n="relevant-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.816a2 2 0 001.956-1.536c.348-1.428.832-2.506 1.622-3.693A4.318 4.318 0 0018 10.333V9.333a6 6 0 00-6-6h-.048c-.355 0-.696.11-1.02.35L9.366 5.605c-.35.25-.767.369-1.194.369h-.786zm0 0V9.333a6 6 0 01-.07-.667C6.014 8.68 6 8.358 6 8a4 4 0 01-4-4H2V2h4a4 4 0 014 4c0 .358-.014.68-.03.999a6 6 0 00.07.667z"/></svg>
+                            Relevant
+                        </button>
+                        <button onclick="giveFeedback(this, 'dislike')" data-feedback="dislike" data-i18n="not-relevant-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667V4.237a2 2 0 00-1.106-1.79l-.05-.025A4 4 0 0011.057 2H5.241a2 2 0 00-1.956 1.536c-.348 1.428-.832 2.506-1.622 3.693A4.318 4.318 0 002 9.667v1.001a6 6 0 006 6h.048c.355 0 .696-.11 1.02-.35L10.634 14.39a2 2 0 011.194-.369h.786zm0 0V10.667a6 6 0 01.07.667c.016.319.03.64.03.999a4 4 0 014 4h0v2h-4a4 4 0 01-4-4c0-.358.014-.68.03-.999a6 6 0 00-.07-.667z"/></svg>
+                            Not relevant
+                        </button>
+                    </div>
+                </div>
+
+                                <div class="card-hover transition duration-300 bg-white p-5 rounded-xl shadow-lg hover:shadow-xl flex flex-col justify-between" data-trend-id="trend-2" data-hsn="6109">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2 truncate" data-i18n="trend2-title">Product-Market Match</h3>
+                        <div class="trend-value text-3xl sm:text-4xl font-bold text-primary leading-none">82%</div>
+                        <span class="text-sm text-gray-600 font-semibold mt-1 block" data-i18n="trend2-subtitle">Excellent Match</span>
+                        <span class="text-xs text-gray-400 mt-1 block" data-i18n="trend2-action">Action: Focus on digital marketing in new regions.</span>
+                    </div>
+                    <div class="feedback-icons">
+                        <button onclick="giveFeedback(this, 'like')" data-feedback="like" data-i18n="relevant-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.816a2 2 0 001.956-1.536c-.348-1.428.832-2.506 1.622-3.693A4.318 4.318 0 0018 10.333V9.333a6 6 0 00-6-6h-.048c-.355 0-.696.11-1.02.35L9.366 5.605c-.35.25-.767.369-1.194.369h-.786zm0 0V9.333a6 6 0 01-.07-.667C6.014 8.68 6 8.358 6 8a4 4 0 01-4-4H2V2h4a4 4 0 014 4c0 .358-.014.68-.03.999a6 6 0 00.07.667z"/></svg>
+                            Relevant
+                        </button>
+                        <button onclick="giveFeedback(this, 'dislike')" data-feedback="dislike" data-i18n="not-relevant-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667V4.237a2 2 0 00-1.106-1.79l-.05-.025A4 4 0 0011.057 2H5.241a2 2 0 00-1.956 1.536c-.348 1.428-.832 2.506-1.622 3.693A4.318 4.318 0 002 9.667v1.001a6 6 0 006 6h.048c.355 0 .696-.11 1.02-.35L10.634 14.39a2 2 0 011.194-.369h.786zm0 0V10.667a6 6 0 01.07.667c.016.319.03.64.03.999a4 4 0 014 4h0v2h-4a4 4 0 01-4-4c0-.358.014-.68.03-.999a6 6 0 00-.07-.667z"/></svg>
+                            Not relevant
+                        </button>
+                    </div>
+                </div>
+                
+                                <div class="card-hover transition duration-300 bg-white p-5 rounded-xl shadow-lg hover:shadow-xl flex flex-col justify-between" data-trend-id="trend-3" data-hsn="8471">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2 truncate" data-i18n="trend3-title">Geographic Hotspot</h3>
+                        <div class="trend-value text-2xl sm:text-3xl font-bold text-gray-800 leading-none">Pune, MH</div>
+                        <span class="text-sm text-secondary font-semibold mt-1 block" data-i18n="trend3-subtitle">Demand up 40% WoW</span>
+                        <span class="text-xs text-gray-400 mt-1 block hsn-label">HSN: 8471 (Small Electronics)</span>
+                    </div>
+                    <div class="feedback-icons">
+                        <button onclick="giveFeedback(this, 'like')" data-feedback="like" data-i18n="relevant-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.816a2 2 0 001.956-1.536c-.348-1.428.832-2.506 1.622-3.693A4.318 4.318 0 0018 10.333V9.333a6 6 0 00-6-6h-.048c-.355 0-.696.11-1.02.35L9.366 5.605c-.35.25-.767.369-1.194.369h-.786zm0 0V9.333a6 6 0 01-.07-.667C6.014 8.68 6 8.358 6 8a4 4 0 01-4-4H2V2h4a4 4 0 014 4c0 .358-.014.68-.03.999a6 6 0 00.07.667z"/></svg>
+                            Relevant
+                        </button>
+SESSION_USER_128- <button onclick="giveFeedback(this, 'dislike')" data-feedback="dislike" data-i18n="not-relevant-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667V4.237a2 2 0 00-1.106-1.79l-.05-.025A4 4 0 0011.057 2H5.241a2 2 0 00-1.956 1.536c-.348 1.428-.832 2.506-1.622 3.693A4.318 4.318 0 002 9.667v1.001a6 6 0 006 6h.048c.355 0 .696-.11 1.02-.35L10.634 14.39a2 2 0 011.194-.369h.786zm0 0V10.667a6 6 0 01.07.667c.016.319.03.64.03.999a4 4 0 014 4h0v2h-4a4 4 0 01-4-4c0-.358.014-.68.03-.999a6 6 0 00-.07-.667z"/></svg>
+                            Not relevant
+                        </button>
+                    </div>
+                </div>
+                
+                                <div class="card-hover transition duration-300 bg-white p-5 rounded-xl shadow-lg hover:shadow-xl flex flex-col justify-between" data-trend-id="trend-4" data-hsn="6109">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-2 truncate" data-i18n="trend4-title">Competitor Activity</h3>
+                        <div class="trend-value text-3xl sm:text-4xl font-bold text-risk leading-none">2 New</div>
+                        <span class="text-sm text-risk font-semibold mt-1 block" data-i18n="trend4-subtitle">Entrants This Week</span>
+                        <span class="text-xs text-gray-400 mt-1 block" data-i18n="trend4-action">Risk: Increase product differentiation.</span>
+                    </div>
+                    <div class="feedback-icons">
+                        <button onclick="giveFeedback(this, 'like')" data-feedback="like" data-i18n="relevant-button">
+s                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.816a2 2 0 001.956-1.536c-.348-1.428.832-2.506 1.622-3.693A4.318 4.318 0 0018 10.333V9.333a6 6 0 00-6-6h-.048c-.355 0-.696.11-1.02.35L9.366 5.605c-.35.25-.767.369-1.194.369h-.786zm0 0V9.333a6 6 0 01-.07-.667C6.014 8.68 6 8.358 6 8a4 4 0 01-4-4H2V2h4a4 4 0 014 4c0 .358-.014.68-.03.999a6 6 0 00.07.667z"/></svg>
+                            Relevant
+                        </button>
+s                        <button onclick="giveFeedback(this, 'dislike')" data-feedback="dislike" data-i18n="not-relevant-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667V4.237a2 2 0 00-1.106-1.79l-.05-.025A4 4 0 0011.057 2H5.241a2 2 0 00-1.956 1.536c-.348 1.428-.832 2.506-1.622 3.693A4.318 4.318 0 002 9.667v1.001a6 6 0 006 6h.048c.355 0 .696-.11 1.02-.35L10.634 14.39a2 2 0 011.194-.369h.786zm0 0V10.667a6 6 0 01.07.667c.016.319.03.64.03.999a4 4 0 014 4h0v2h-4a4 4 0 01-4-4c0-.358.014-.68.03-.999a6 6 0 00-.07-.667z"/></svg>
+                            Not relevant
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold mb-4 mt-8 text-gray-700 border-l-4 border-secondary pl-3" data-i18n="trend-chart-header">
+                Demand Trend Visualization (<span id="trend-hsn-display">HSN: 6109</span>)
+            </h2>
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                <div id="trend-chart" class="chart-container">
+                    </div>
+            </div>
+
+                        <h2 class="text-2xl font-semibold mb-4 text-gray-700 border-l-4 border-secondary pl-3 flex justify-between items-center" data-i18n="alerts-header">
+                Actionable Alerts & Compliance
+                                <select id="alert-filter" onchange="filterAlerts(this.value)" class="text-sm border border-gray-300 rounded-lg p-1.5 focus:ring-primary focus:border-primary transition duration-150">
+                                        <option value="all" data-i18n="filter-all">All Alerts</option>
+                    <option value="risk" data-i18n="filter-risk">Risk</option>
+                    <option value="opportunity" data-i18n="filter-opportunity">Opportunity</option>
+                </select>
+            </h2>
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <ul class="space-y-3" id="alert-list">
+                    
+                                        <li class="alert-item p-4 rounded-lg bg-red-50 border-l-4 border-risk flex items-start justify-between transition duration-300 group cursor-pointer" 
+                        data-alert-id="alert-1" data-type="risk" data-hsn="6109"
+                        onclick="openComplianceModal('Regulatory Risk: New HSN Compliance Update', '6109', 'Organic Cotton Tees')">
+                        <div class="flex items-start">
+                            <span class="text-xl mr-4 flex-shrink-0 text-risk">⚠</span>
+                            <div>
+                                <strong class="text-base font-semibold text-gray-900 block" data-i18n="alert1-title">Regulatory Risk: New HSN Compliance Update</strong>
+                                <span class="text-sm text-gray-600" data-i18n="alert1-subtitle">A new GST rule for HSN <span class="alert-hsn-code">6109</span> takes effect in 7 days. Action: *Generate Compliance Checklist.*</span>
+                            </div>
+                        </div>
+_                     <button onclick="event.stopPropagation(); resolveAlert(this);" class="resolve-btn ml-4 flex-shrink-0 bg-white hover:bg-red-100 text-risk text-xs font-semibold py-1 px-3 border border-risk rounded-full opacity-0 group-hover:opacity-100 transition duration-150" data-i18n="resolve-button">
+                            Resolve
+                        </button>
+                    </li>
+                    
+                                        <li class="alert-item p-4 rounded-lg bg-emerald-50 border-l-4 border-opportunity flex items-start justify-between transition duration-300 group cursor-pointer" 
+                        data-alert-id="alert-2" data-type="opportunity" data-hsn="6109"
+      _               onclick="openAlertModal(
+                            'Supply Gap Alert: High Demand, Low Supply', 
+                            'Our AI detected a 35% surge in demand for Product X in your region over the last 7 days. Simultaneously, competitor stock levels are low. This presents a prime opportunity to capture market share.',
+F                           'https://example.com/market-report-productX', 
+                            'Increase Production Order', 
+                            'opportunity',
+                            'Rule 2.A: Supply-Demand Imbalance. Trend score +35% combined with Competitor Inventory Index (CII) score below 20%.',
+                            'Source: PyTrends (Local Search Data) & Mock Competitor API (Stock Levels).'
+                        )">
+                        <div class="flex items-start">
+A                           <span class="text-xl mr-4 flex-shrink-0 text-opportunity">⭐</span>
+                            <div>
+                                <strong class="text-base font-semibold text-gray-900 block" data-i18n="alert2-title">Supply Gap Alert: High Demand, Low Supply</strong>
+                                <span class="text-sm text-gray-600" data-i18n="alert2-subtitle">Demand for Product X is up 35% in your region. Competitor supply is lagging. Action: Increase production.</span>
+innerHTML = translations[lang][key];
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); resolveAlert(this);" class="resolve-btn ml-4 flex-shrink-0 bg-white hover:bg-emerald-100 text-opportunity text-xs font-semibold py-1 px-3 border border-opportunity rounded-full opacity-0 group-hover:opacity-100 transition duration-150" data-i18n="resolve-button">
+                            Resolve
+                        </button>
+                    </li>
+                    
+                                        <li class="alert-item p-4 rounded-lg bg-emerald-50 border-l-4 border-opportunity flex items-start justify-between transition duration-300 group cursor-pointer" 
+                        data-alert-id="alert-3" data-type="opportunity" data-hsn="6109"
+                        onclick="openAlertModal(
+                            'Pricing Tip: Optimize for Profitability', 
+                            'Based on recent competitor pricing adjustments for similar products, our AI recommends an optimal selling price of ₹350 for Product Y. This increase of ₹25 could significantly boost your profit margins without impacting sales volume due to market tolerance.',
+                            'https://example.com/pricing-analysis-productY', 
+                            'Set Target Price', 
+A                           'opportunity',
+                            'Rule 5.C: Price-Opportunity Window. Competitor Average Price Index (CAPI) increased by 7.5% over 14 days without corresponding volume drop.',
+A                           'Source: Mock Competitor API (Pricing Data).'
+                        )">
+                        <div class="flex items-start">
+                            <span class="text-xl mr-4 flex-shrink-0 text-opportunity">💲</span>
+                  _         <div>
+                                <strong class="text-base font-semibold text-gray-900 block" data-i18n="alert3-title">Pricing Tip: Optimize for Profitability</strong>
+                                <span class="text-sm text-gray-600" data-i18n="alert3-subtitle">Recommended selling price for Product Y is ₹350 (+₹25) based on competitor movements.</span>
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); resolveAlert(this);" class="resolve-btn ml-4 flex-shrink-0 bg-white hover:bg-emerald-100 text-opportunity text-xs font-semibold py-1 px-3 border border-opportunity rounded-full opacity-0 group-hover:opacity-100 transition duration-150" data-i18n="resolve-button">
+                            Resolve
+      _             </button>
+f                 </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700 border-l-4 border-secondary pl-3" data-i18n="health-header">Platform Health & Value</h2>
+
+                        <div class="bg-white p-6 rounded-xl shadow-lg mb-6 border-t-4 border-primary">
+                <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center" data-i18n="hsn-card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.5 7.171a1 1 0 10-1.732-1l-3 5.5a1 1 0 101.732 1l3-5.5z" clip-rule="evenodd"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v2a1 1 0 102 0V5z" clip-rule="evenodd"/></svg>
+                    My Primary HSN Code
+                </h3>
+                <p class="text-xs text-gray-500 mb-3" data-i18n="hsn-card-subtitle">Personalize all trends and compliance alerts to your core product category.</p>
+                <div class="flex gap-2 items-center">
+                    <input type="text" id="hsn-input" value="6109" maxlength="4" class="w-full p-2 border border-gray-300 rounded-lg text-lg font-mono focus:ring-primary focus:border-primary transition duration-150">
+                    <button onclick="saveHsnPreference()" class="p-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition duration-150">
+S                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    </button>
+                </div>
+                <p id="hsn-message" class="text-sm mt-2 text-primary font-medium hidden"></p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 mb-8">
+
+                                <div id="reverse-tracking-card" class="bg-white p-6 rounded-xl shadow-lg transition duration-300">
+                    <div class="text-center py-4">
+                        <div id="reverse-tracking-score" class="relative inline-flex items-center justify-center p-1 rounded-full ring-8 transition duration-300 score-ring-good">
+                            <div class="gauge-text text-5xl font-extrabold text-gray-900 bg-white rounded-full h-24 w-24 flex items-center justify-center">88%</div>
+      _               </div>
+                        <div class="text-xl font-semibold text-gray-800 mt-4" id="reverse-tracking-title" data-i18n="tracking-title">Reverse-Tracking Accuracy</div>
+                        <p class="text-xs mt-2 text-gray-500" id="reverse-tracking-description" data-i18n="tracking-subtitle">
+                            The AI's confidence score, measuring how well our past predictions align with observed market outcomes.
+                        </p>
+                    </div>
+                </div>
+
+                                <div id="signal-score-card" class="bg-white p-6 rounded-xl shadow-lg transition duration-300">
+                    <div class="text-center py-4">
+                        <div id="signal-score" class="relative inline-flex items-center justify-center p-1 rounded-full ring-8 transition duration-300 score-ring-good">
+                            <div class="gauge-text text-5xl font-extrabold text-gray-900 bg-white rounded-full h-24 w-24 flex items-center justify-center">92%</div>
+                        </div>
+                        <div class="text-xl font-semibold text-gray-800 mt-4" id="signal-score-title" data-i18n="signal-title">Real-Time Signal Score</div>
+                        <p class="text-xs mt-2 text-gray-500" id="signal-score-description" data-i18n="signal-subtitle">
+                            Data quality check, ensuring market insights are based on verified, low-noise sources (STI, TWEMA).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4" data-i18n="metrics-header">Service Performance</h3>
+A               <div class="space-y-4">
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                        <span class="text-sm text-gray-600" data-i18n="metrics1-label">High-Value Alerts (This Month)</span>
+Read                       <span class="text-lg font-bold text-primary">12</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                        <span class="text-sm text-gray-600" data-i18n="metrics2-label">Estimated Time Saved</span>
+                        <span class="text-lg font-bold text-primary">45 Hrs</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+static                      <span class="text-sm text-gray-600" data-i18n="metrics3-label">New Opportunities Identified</span>
+                        <span class="text-lg font-bold text-opportunity">5</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+f                       <span class="text-sm text-gray-600" data-i18n="metrics4-label">Data Sources Analyzed (Last 24h)</span>
+                        <span class="text-lg font-bold text-primary">630+</span>
+                    </div>
+        _       </div>
+            </div>
+
+                        <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-200">
+                <h3 class="text-lg font-semibold text-primary mt-0 mb-1" data-i18n="multilingual-info-title">Multilingual Mode Active</h3>
+                <p class="text-sm text-indigo-700" data-i18n="multilingual-info-subtitle">All insights are translated into your selected regional language for full inclusivity.</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    
+// --- 1. TRANSLATION (i18n) ENGINE ---
+
+const translations = {
+    "en": {
+        "header-title": "MARKETPULSE AI Trend Radar",
+        "header-subtitle": "Actionable tips, strategic foresight, and compliance alerts for your MSME.",
+        "search-placeholder": "Search by HSN code, product, or region...",
+        "search-button": "Search",
+        "export-button": "Export Data",
+        "trends-header": "Market Trends Intelligence",
+        "trend1-title": "Top Emerging Trend",
+        "trend1-subtitle": "Demand Growth (MoM)",
+        "relevant-button": "Relevant",
+        "not-relevant-button": "Not relevant",
+        "trend2-title": "Product-Market Match",
+        "trend2-subtitle": "Excellent Match",
+        "trend2-action": "Action: Focus on digital marketing in new regions.",
+        "trend3-title": "Geographic Hotspot",
+        "trend3-subtitle": "Demand up 40% WoW",
+        "trend4-title": "Competitor Activity",
+        "trend4-subtitle": "Entrants This Week",
+        "trend4-action": "Risk: Increase product differentiation.",
+        "trend-chart-header": "Demand Trend Visualization",
+        "alerts-header": "Actionable Alerts & Compliance",
+        "filter-all": "All Alerts",
+        "filter-risk": "Risk",
+        "filter-opportunity": "Opportunity",
+        "alert1-title": "Regulatory Risk: New HSN Compliance Update",
+        "alert1-subtitle": "A new GST rule for HSN 6109 takes effect in 7 days. Action: *Generate Compliance Checklist.*",
+        "resolve-button": "Resolve",
+        "alert2-title": "Supply Gap Alert: High Demand, Low Supply",
+        "alert2-subtitle": "Demand for Product X is up 35% in your region. Competitor supply is lagging. Action: Increase production.",
+        "alert3-title": "Pricing Tip: Optimize for Profitability",
+        "alert3-subtitle": "Recommended selling price for Product Y is ₹350 (+₹25) based on competitor movements.",
+        "health-header": "Platform Health & Value",
+        "hsn-card-title": "My Primary HSN Code",
+        "hsn-card-subtitle": "Personalize all trends and compliance alerts to your core product category.",
+        "tracking-title": "Reverse-Tracking Accuracy",
+        "tracking-subtitle": "The AI's confidence score, measuring how well our past predictions align with observed market outcomes.",
+        "signal-title": "Real-Time Signal Score",
+        "signal-subtitle": "Data quality check, ensuring market insights are based on verified, low-noise sources (STI, TWEMA).",
+        "metrics-header": "Service Performance",
+        "metrics1-label": "High-Value Alerts (This Month)",
+        "metrics2-label": "Estimated Time Saved",
+        "metrics3-label": "New Opportunities Identified",
+        "metrics4-label": "Data Sources Analyzed (Last 24h)",
+        "multilingual-info-title": "Multilingual Mode Active",
+        "multilingual-info-subtitle": "All insights are translated into your selected regional language for full inclusivity."
+    },
+    "hi": {
+        "header-title": "मार्केटपल्स एआई ट्रेंड रडार",
+        "header-subtitle": "आपके MSME के लिए कार्रवाई योग्य सुझाव, रणनीतिक दूरदर्शिता और अनुपालन अलर्ट।",
+        "search-placeholder": "HSN कोड, उत्पाद, या क्षेत्र द्वारा खोजें...",
+        "search-button": "खोजें",
+        "export-button": "डेटा निर्यात करें",
+        "trends-header": "बाज़ार रुझान इंटेलिजेंस",
+        "trend1-title": "शीर्ष उभरता रुझान",
+        "trend1-subtitle": "मांग वृद्धि (महीने-दर-महीने)",
+        "relevant-button": "प्रासंगिक",
+        "not-relevant-button": "प्रासंगिक नहीं",
+        "trend2-title": "उत्पाद-बाजार मैच",
+        "trend2-subtitle": "उत्कृष्ट मैच",
+        "trend2-action": "कार्रवाई: नए क्षेत्रों में डिजिटल मार्केटिंग पर ध्यान दें।",
+        "trend3-title": "भौगोलिक हॉटस्पॉट",
+        "trend3-subtitle": "मांग 40% बढ़ी (सप्ताह-दर-सप्ताह)",
+        "trend4-title": "प्रतिस्पर्धी गतिविधि",
+        "trend4-subtitle": "इस सप्ताह 2 नए प्रवेशक",
+        "trend4-action": "जोखिम: उत्पाद विविधीकरण बढ़ाएँ।",
+        "trend-chart-header": "मांग रुझान विज़ुअलाइज़ेशन",
+        "alerts-header": "कार्रवाई योग्य अलर्ट और अनुपालन",
+        "filter-all": "सभी अलर्ट",
+        "filter-risk": "जोखिम",
+        "filter-opportunity": "अवसर",
+        "alert1-title": "नियामक जोखिम: नया एचएसएन अनुपालन अपडेट",
+        "alert1-subtitle": "HSN 6109 के लिए एक नया GST नियम 7 दिनों में लागू होगा। कार्रवाई: *अनुपालन चेकलिस्ट बनाएँ।*",
+        "resolve-button": "हल करें",
+        "alert2-title": "आपूर्ति गैप अलर्ट: उच्च मांग, कम आपूर्ति",
+        "alert2-subtitle": "आपके क्षेत्र में उत्पाद X की मांग 35% बढ़ी है। प्रतिस्पर्धी आपूर्ति पिछड़ रही है। कार्रवाई: उत्पादन बढ़ाएँ।",
+        "alert3-title": "मूल्य निर्धारण युक्ति: लाभप्रदता के लिए अनुकूलन करें",
+        "alert3-subtitle": "प्रतिस्पर्धी गतिविधियों के आधार पर उत्पाद Y के लिए अनुशंसित बिक्री मूल्य ₹350 (+₹25) है।",
+        "health-header": "प्लेटफार्म स्वास्थ्य और मूल्य",
+        "hsn-card-title": "मेरा प्राथमिक HSN कोड",
+        "hsn-card-subtitle": "अपनी मुख्य उत्पाद श्रेणी के लिए सभी रुझानों और अनुपालन अलर्ट को वैयक्तिकृत करें।",
+        "tracking-title": "रिवर्स-ट्रैकिंग सटीकता",
+        "tracking-subtitle": "एआई का आत्मविश्वास स्कोर, यह मापता है कि हमारे पिछले अनुमान वास्तविक बाजार परिणामों के साथ कितने मेल खाते हैं।",
+        "signal-title": "रियल-टाइम सिग्नल स्कोर",
+        "signal-subtitle": "डेटा गुणवत्ता जांच, यह सुनिश्चित करना कि बाजार की अंतर्दृष्टि सत्यापित, कम-शोर वाले स्रोतों (STI, TWEMA) पर आधारित है।",
+        "metrics-header": "सेवा प्रदर्शन",
+        "metrics1-label": "उच्च-मूल्य अलर्ट (इस महीने)",
+        "metrics2-label": "अनुमानित समय बचाया गया",
+        "metrics3-label": "नए अवसर पहचाने गए",
+        "metrics4-label": "विश्लेषित डेटा स्रोत (अंतिम 24 घंटे)",
+        "multilingual-info-title": "बहुभाषी मोड सक्रिय",
+        "multilingual-info-subtitle": "सभी अंतर्दृष्टि पूर्ण समावेशिता के लिए आपकी चयनित क्षेत्रीय भाषा में अनुवादित हैं।"
+    }
+};
+
+/**
+ * Sets the language for the entire page
+ * @param {string} lang - The language code (e.g., 'en' or 'hi')
+ */
+function setLanguage(lang) {
+    // Set the 'lang' attribute on the HTML element
+    document.documentElement.lang = lang;
+
+    // Update all elements with a 'data-i18n' attribute
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+            element.innerHTML = translations[lang][key];
+        }
+    });
+
+    // Update all placeholder attributes with 'data-i18n-placeholder'
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        if (translations[lang] && translations[lang][key]) {
+            element.placeholder = translations[lang][key];
+        }
+    });
+
+    console.log(`Language changed to: ${lang}`);
+}
+
+// --- 2. STUB FUNCTIONS (To prevent console errors) ---
+// These functions are called by the HTML but don't do anything yet.
+
+function exportData() {
+    console.log("exportData() called. Logic to export data not yet implemented.");
+    alert("Export function is not yet implemented.");
+}
+
+function giveFeedback(element, feedbackType) {
+    console.log(`giveFeedback() called: ${feedbackType}`);
+    
+    // Logic to show selection
+    const parent = element.parentElement;
+    // Remove 'selected' from both buttons
+    parent.querySelectorAll('button').forEach(btn => {
+        btn.classList.remove('selected', 'dislike');
+    });
+    
+    // Add 'selected' to the clicked button
+    element.classList.add('selected');
+    if (feedbackType === 'dislike') {
+        element.classList.add('dislike');
+    }
+}
+
+function filterAlerts(filterValue) {
+    console.log(`filterAlerts() called with value: ${filterValue}`);
+    // Logic to filter alerts will go here
+}
+
+function openComplianceModal(title, hsn, product) {
+    console.log(`openComplianceModal() called for HSN: ${hsn}`);
+    alert(`Compliance Modal (not built yet):\nTitle: ${title}\nHSN: ${hsn}`);
+}
+
+function openAlertModal(title, description, link, cta, type, rule, source) {
+    console.log(`openAlertModal() called for Title: ${title}`);
+    alert(`XAI Modal (not built yet):\nTitle: ${title}\nDescription: ${description}`);
+}
+
+function resolveAlert(element) {
+    console.log("resolveAlert() called.");
+    // Find the parent 'alert-item' and hide it
+    const alertItem = element.closest('.alert-item');
+    if (alertItem) {
+        alertItem.style.opacity = '0';
+        alertItem.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            alertItem.style.display = 'none';
+        }, 300);
+    }
+}
+
+function saveHsnPreference() {
+    const hsnInput = document.getElementById('hsn-input');
+    const hsnMessage = document.getElementById('hsn-message');
+    const hsn = hsnInput.value;
+    
+    console.log(`saveHsnPreference() called with HSN: ${hsn}`);
+    
+    // Simple validation
+    if (hsn && hsn.length >= 4) {
+        hsnMessage.textContent = `Preference saved for HSN: ${hsn}`;
+        hsnMessage.classList.remove('hidden', 'text-red-500');
+        hsnMessage.classList.add('text-primary');
+    } else {
+        hsnMessage.textContent = "Please enter a valid HSN code (at least 4 digits).";
+        hsnMessage.classList.remove('hidden', 'text-primary');
+        hsnMessage.classList.add('text-red-500');
+    }
+    
+    // Make message visible
+    hsnMessage.classList.remove('hidden');
+    
+    // Hide message after 3 seconds
+    setTimeout(() => {
+        hsnMessage.classList.add('hidden');
+    }, 3000);
+}
+
+
+// --- 3. INITIALIZATION ---
+
+// Run when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Set the default language (English) on page load
+    setLanguage('en');
+
+    // (Placeholder for D3 Chart)
+    // We would call a function like drawChart() here
+    console.log("Dashboard initialized. D3 chart drawing not yet implemented.");
+    document.getElementById('trend-chart').innerHTML = '<p class="text-center text-gray-500">D3.js chart will be rendered here.</p>';
+});
+
+</script>
+
+</body>
+</html>

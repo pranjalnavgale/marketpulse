@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarketPulse MSME Data Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import lucide from 'https://cdn.jsdelivr.net/npm/lucide-esm@latest/umd/lucide.js';
+        lucide.createIcons();
+    </script>
+    <style>
+        :root {
+            --primary-color: #2563eb; /* Blue-600 */
+            --secondary-color: #0ea5e9; /* Sky-500 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .dashboard-header {
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 1rem;
+        }
+        .data-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            border-left: 4px solid var(--secondary-color);
+        }
+        /* Custom scrollbar for aesthetic purposes */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background-color: #93c5fd; /* Blue-300 */
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #eef2ff; /* Indigo-50 */
+        }
+        
+        /* Helper class for risk color coding */
+        .risk-low { border-left-color: #22c55e; } /* Green-500 */
+        .risk-medium { border-left-color: #f59e0b; } /* Amber-500 */
+        .risk-high { border-left-color: #ef4444; } /* Red-500 */
+        
+        /* Utility class for active nav link */
+        .nav-active {
+            background-color: #2563eb !important; /* Blue-600 */
+            color: white !important;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1), 0 4px 6px -4px rgba(37, 99, 235, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="flex h-full">
+
+        <aside class="w-64 bg-white p-6 shadow-xl hidden lg:block border-r border-blue-100">
+            <h1 class="text-2xl font-extrabold text-gray-800 mb-8 flex items-center">
+                <span data-lucide="zap" class="text-sky-500 mr-2"></span>
+                MarketPulse
+            </h1>
+            <nav class="space-y-2">
+                <a id="nav-dashboard" href="#" data-view="dashboard" class="nav-link flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg nav-active">
+                    <span data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></span> Dashboard
+                </a>
+                <a id="nav-insights" href="#" data-view="insights" class="nav-link flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg">
+                    <span data-lucide="lightbulb" class="w-5 h-5 mr-3"></span> Insights
+                </a>
+                <a id="nav-data" href="#" data-view="msme-data" class="nav-link flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg">
+                    <span data-lucide="database" class="w-5 h-5 mr-3"></span> MSME Data
+                </a>
+                <a id="nav-settings" href="#" data-view="settings" class="nav-link flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg">
+                    <span data-lucide="settings" class="w-5 h-5 mr-3"></span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-4 md:p-8 lg:p-10 overflow-y-auto">
+            
+            <div id="dashboard-view" class="view-content">
+                <header class="mb-8 dashboard-header">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center">
+                        <span data-lucide="database" class="w-8 h-8 text-blue-600 mr-3"></span>
+                        MSME Data Intelligence Center
+                    </h2>
+                    <p class="text-gray-600 mt-1">Real-time data for your tracked HSN codes, regulatory compliance, and reverse-tracking intelligence.</p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    
+                    <div class="lg:col-span-2 data-card bg-white p-6 rounded-xl border-l-4 border-sky-500">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                                    <span data-lucide="shield-check" class="w-5 h-5 text-green-500 mr-2"></span>
+                                    Compliance & Regulatory Scorecard
+                                </h3>
+                                <p class="text-sm text-gray-500 mt-1">Based on GST, Udyam, and local policy monitoring.</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-4xl font-extrabold text-green-600">92%</span>
+                                <span class="block text-sm text-gray-500 -mt-1">Risk Aversion</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 space-y-3">
+                            <div class="flex justify-between items-center text-sm border-t pt-3">
+                                <span class="font-medium text-gray-700">Next Mandatory Filing Deadline:</span>
+                                <span class="font-semibold text-blue-600">Dec 31, 2025</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm border-b pb-3">
+                                <span class="font-medium text-gray-700">New Regulatory Alerts (Last 7 Days):</span>
+                                <span class="font-semibold text-orange-500 flex items-center">
+                                    <span data-lucide="alert-triangle" class="w-4 h-4 mr-1"></span> 2 Moderate
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <button class="mt-4 w-full md:w-auto px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition">
+                            View Full Compliance Report
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-1 grid grid-cols-2 gap-4">
+                        <div class="data-card bg-white p-4 rounded-xl text-center border-l-4 border-blue-500">
+                            <span data-lucide="package" class="w-8 h-8 text-blue-500 mx-auto mb-2"></span>
+                            <p class="text-3xl font-bold text-gray-800">3</p>
+                            <p class="text-sm text-gray-500">Tracked HSN Codes</p>
+                        </div>
+                        <div class="data-card bg-white p-4 rounded-xl text-center border-l-4 border-green-500">
+                            <span data-lucide="trending-up" class="w-8 h-8 text-green-500 mx-auto mb-2"></span>
+                            <p class="text-3xl font-bold text-gray-800">+4.5%</p>
+                            <p class="text-sm text-gray-500">Avg. Market Growth (6M)</p>
+                        </div>
+                        <div class="data-card bg-white p-4 rounded-xl text-center border-l-4 border-orange-500">
+                            <span data-lucide="radar" class="w-8 h-8 text-orange-500 mx-auto mb-2"></span>
+                            <p class="text-3xl font-bold text-gray-800">7</p>
+                            <p class="text-sm text-gray-500">Competitor Shifts Detected</p>
+                        </div>
+                        <div class="data-card bg-white p-4 rounded-xl text-center border-l-4 border-purple-500">
+                            <span data-lucide="map-pin" class="w-8 h-8 text-purple-500 mx-auto mb-2"></span>
+                            <p class="text-3xl font-bold text-gray-800">1</p>
+                            <p class="text-sm text-gray-500">Local Policy Change</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+                    
+                    <div class="xl:col-span-1 data-card bg-white p-6 rounded-xl h-[450px] flex flex-col">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span data-lucide="map-pin" class="w-5 h-5 text-red-500 mr-2"></span>
+                            Localized Opportunity Heatmap: HSN 6204
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">Targeted market growth areas within your primary region (Maharashtra & Gujarat).</p>
+                        
+                        <div class="space-y-3 flex-1 custom-scroll overflow-y-auto pr-2">
+                            
+                            <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg border-l-4 border-green-600">
+                                <div class="flex items-center">
+                                    <span data-lucide="arrow-up-right" class="w-5 h-5 text-green-600 mr-3 flex-shrink-0"></span>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Nagpur District, MH</p>
+                                        <p class="text-xs text-gray-600">Demand Volume Up <span class="font-bold">12.8%</span> (30D)</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-bold text-green-700 bg-green-200 px-3 py-1 rounded-full">High Action</span>
+                            </div>
+
+                            <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-600">
+                                <div class="flex items-center">
+                                    <span data-lucide="trending-up" class="w-5 h-5 text-yellow-600 mr-3 flex-shrink-0"></span>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Surat District, GJ</p>
+                                        <p class="text-xs text-gray-600">Demand Volume Up <span class="font-bold">4.5%</span> (30D)</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-bold text-yellow-700 bg-yellow-200 px-3 py-1 rounded-full">Monitor</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-600">
+                                <div class="flex items-center">
+                                    <span data-lucide="user-plus" class="w-5 h-5 text-blue-600 mr-3 flex-shrink-0"></span>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Kolhapur District, MH</p>
+                                        <p class="text-xs text-gray-600">New Seller Density <span class="font-bold">Low</span> (Potential Entry)</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-bold text-blue-700 bg-blue-200 px-3 py-1 rounded-full">Explore</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border-l-4 border-gray-600">
+                                <div class="flex items-center">
+                                    <span data-lucide="minus-circle" class="w-5 h-5 text-gray-600 mr-3 flex-shrink-0"></span>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Ahmednagar, MH</p>
+                                        <p class="text-xs text-gray-600">Demand Volume <span class="font-bold">Stable</span> (0.2% change)</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-bold text-gray-700 bg-gray-200 px-3 py-1 rounded-full">Neutral</span>
+                            </div>
+
+                            <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg border-l-4 border-red-600">
+                                <div class="flex items-center">
+                                    <span data-lucide="arrow-down-left" class="w-5 h-5 text-red-600 mr-3 flex-shrink-0"></span>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Nashik District, MH</p>
+                                        <p class="text-xs text-gray-600">Aggressive Local Price <span class="font-bold">Competition</span> (4 rivals)</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-bold text-red-700 bg-red-200 px-3 py-1 rounded-full">Caution</span>
+                            </div>
+
+                        </div>
+                        
+                        <button class="mt-4 w-full px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition">
+                            Generate Localized Strategy Report
+                        </button>
+                    </div>
+
+                    <div class="xl:col-span-1 data-card bg-white p-6 rounded-xl h-[450px] flex flex-col">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span data-lucide="boxes" class="w-5 h-5 text-orange-500 mr-2"></span>
+                            Input Material Risk Tracker (HSN 3926)
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">Monitor price volatility, supply chain bottlenecks, and policy changes for key raw materials.</p>
+                        
+                        <div class="space-y-4 flex-1 custom-scroll overflow-y-auto pr-2">
+                            
+                            <div class="p-4 rounded-lg bg-red-50 risk-high data-card">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="font-bold text-lg text-gray-900">Polyester Yarn (6204)</p>
+                                        <p class="text-xs text-gray-600">Input HSN: 5402.47</p>
+                                    </div>
+                                    <span class="text-xs font-bold text-red-700 bg-red-200 px-3 py-1 rounded-full">HIGH RISK</span>
+                                </div>
+                                <div class="mt-2 flex justify-between text-sm">
+                                    <span class="text-gray-700">Price Volatility (30D):</span>
+                                    <span class="font-semibold text-red-600 flex items-center">
+                                        <span data-lucide="line-chart" class="w-4 h-4 mr-1"></span> +18.2% Spike
+                                    </span>
+                                </div>
+                                <div class="text-xs text-red-700 mt-1">
+                                    *Alert:* China-Tariff update expected next week; secure stock now.
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-lg bg-yellow-50 risk-medium data-card">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="font-bold text-lg text-gray-900">PVC Granules (3926)</p>
+                                        <p class="text-xs text-gray-600">Input HSN: 3904.10</p>
+                                    </div>
+                                    <span class="text-xs font-bold text-yellow-700 bg-yellow-200 px-3 py-1 rounded-full">MEDIUM RISK</span>
+                                </div>
+                                <div class="mt-2 flex justify-between text-sm">
+                                    <span class="text-gray-700">Supply Score:</span>
+                                    <span class="font-semibold text-yellow-600 flex items-center">
+                                        <span data-lucide="truck" class="w-4 h-4 mr-1"></span> Moderate Delays (7 Days)
+                                    </span>
+                                </div>
+                                <div class="text-xs text-yellow-700 mt-1">
+                                    *Tip:* Diversify sourcing to domestic suppliers in Gujarat.
+                                </div>
+                            </div>
+                            
+                            <div class="p-4 rounded-lg bg-green-50 risk-low data-card">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="font-bold text-lg text-gray-900">Stainless Steel Sheets (7308)</p>
+                                        <p class="text-xs text-gray-600">Input HSN: 7219.22</p>
+                                    </div>
+                                    <span class="text-xs font-bold text-green-700 bg-green-200 px-3 py-1 rounded-full">LOW RISK</span>
+                                </div>
+                                <div class="mt-2 flex justify-between text-sm">
+                                    <span class="text-gray-700">Price Volatility (30D):</span>
+                                    <span class="font-semibold text-green-600 flex items-center">
+                                        <span data-lucide="minus" class="w-4 h-4 mr-1"></span> -1.1% (Stable)
+                                    </span>
+                                </div>
+                                <div class="text-xs text-gray-700 mt-1">
+                                    *Status:* Domestic production buffers are healthy.
+                                </div>
+                            </div>
+                        </div>
+                        <button class="mt-4 w-full px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition">
+                            View All Material Risk Scores
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+                    
+                    <div class="xl:col-span-1 data-card bg-white p-6 rounded-xl">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span data-lucide="list-checks" class="w-5 h-5 text-purple-500 mr-2"></span>
+                            HSN Code Watchlist (30D Trend)
+                        </h3>
+                        
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border-l-4 border-green-500">
+                                <div>
+                                    <p class="font-semibold text-gray-800">6204 (Textile Garments)</p>
+                                    <p class="text-xs text-gray-500">Market Volume: ₹5.2 Cr</p>
+                                </div>
+                                <span class="text-sm font-medium text-green-600 flex items-center">
+                                    <span data-lucide="chevron-up" class="w-4 h-4"></span> 8.1% (30D)
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border-l-4 border-orange-500">
+                                <div>
+                                    <p class="font-semibold text-gray-800">3926 (Plastic Articles)</p>
+                                    <p class="text-xs text-gray-500">Market Volume: ₹1.8 Cr</p>
+                                </div>
+                                <span class="text-sm font-medium text-orange-600 flex items-center">
+                                    <span data-lucide="chevron-down" class="w-4 h-4"></span> -2.4% (30D)
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                                <div>
+                                    <p class="font-semibold text-gray-800">8471 (Processing Units)</p>
+                                    <p class="text-xs text-gray-500">Market Volume: ₹95 Lakh</p>
+                                </div>
+                                <span class="text-sm font-medium text-blue-600 flex items-center">
+                                    <span data-lucide="minus" class="w-4 h-4"></span> 0.5% (30D)
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border-l-4 border-gray-400">
+                                <div>
+                                    <p class="font-semibold text-gray-800">4504 (Cork Articles)</p>
+                                    <p class="text-xs text-gray-500">Market Volume: ₹42 Lakh</p>
+                                </div>
+                                <span class="text-sm font-medium text-gray-600 flex items-center">
+                                    <span data-lucide="circle-dot" class="w-4 h-4"></span> N/A (Untracked)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="xl:col-span-2 data-card bg-white p-6 rounded-xl h-96 flex flex-col">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span data-lucide="bar-chart-3" class="w-5 h-5 text-teal-500 mr-2"></span>
+                            Competitor Benchmarking: HSN 6204
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">Direct comparison against two major rivals in your key district.</p>
+                        
+                        <div class="custom-scroll overflow-x-auto flex-1">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-teal-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Metric</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Your Enterprise</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Rival A (Thane)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Rival B (Surat)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Monthly Volume Growth (3M)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap font-bold text-green-600">+8.1% (High)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-red-500">+1.2% (Low)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-yellow-600">+4.5% (Medium)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Average Price Point (ASP)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">₹450/unit</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-red-500">₹390/unit <span class="text-xs text-gray-500">(Aggressive)</span></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-green-600">₹510/unit <span class="text-xs text-gray-500">(Premium)</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Average Lead Time (Weeks)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-yellow-600">8 weeks</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-green-600">6 weeks <span class="text-xs text-gray-500">(Fastest)</span></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">12 weeks</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Customer Rating (Aggregate)</td>
+                                        <td class="px-6 py-4 whitespace-nowrap font-bold text-green-600">4.5/5.0</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-green-600">4.1/5.0 <span class="text-xs text-gray-500">(Lower)</span></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">4.4/5.0 <span class="text-xs text-gray-500">(Higher ASP)</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-card bg-white p-6 rounded-xl">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span data-lucide="git-pull-request" class="w-5 h-5 text-sky-500 mr-2"></span>
+                        Reverse-Tracking Alerts (Unregistered MSME Activity)
+                    </h3>
+                    <p class="text-sm text-gray-600 mb-4">Insights into shifts from unregistered, local competitors (unique to MarketPulse).</p>
+                    <div class="custom-scroll overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-blue-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Source Cluster</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">HSN Impacted</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Shift Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Location</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Metric Change (30D)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Action Needed</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Tier 2 Textile Units</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">6204 (Garments)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-red-600 font-medium">Price Drop</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">Surat, GJ</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-red-600">-8.5% ASP</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">Investigate cost structure.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Small Plastics Fabricators</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">3926 (Plastics)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-orange-600 font-medium">Capacity Increase</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">Nagpur, MH</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-orange-600">+12% Volume</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">Monitor local demand saturation.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Unorganized Food Packagers</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">2106 (Food)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-green-600 font-medium">New Product Line</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">Chennai Central, TN</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-green-600">Emerging Niche</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">Evaluate market opportunity.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+            <div id="insights-view" class="view-content hidden">
+                <header class="mb-8 dashboard-header">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center">
+                        <span data-lucide="lightbulb" class="w-8 h-8 text-yellow-600 mr-3"></span>
+                        Strategic Insights & Predictive Forecasts
+                    </h2>
+                    <p class="text-gray-600 mt-1">AI-driven projections for market direction, risk mitigation, and competitive strategy.</p>
+                </header>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+                    <div class="xl:col-span-2 space-y-6">
+
+                        <div class="data-card bg-white p-6 rounded-xl h-[450px] border-l-4 border-green-500 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                                    <span data-lucide="line-chart" class="w-6 h-6 text-green-500 mr-2"></span>
+                                    Volume Trend Forecast: HSN 6204 (Textiles)
+                                </h3>
+                                <p class="text-sm text-gray-600 mb-4">6-Month Projected Demand Volume (Index 100). Forecast confidence: <span class="font-semibold text-green-600">88%</span>.</p>
+                            </div>
+                            <div class="flex items-center justify-center flex-1 bg-green-50 rounded-lg border border-green-200 p-4 min-h-[250px]">
+                                <div class="text-center">
+                                    <p class="text-6xl font-extrabold text-green-700">Index 115</p>
+                                    <p class="text-lg text-gray-600 mt-2">Projected Growth by May 2026: <span class="font-bold text-xl">+15%</span></p>
+                                    <p class="text-base text-green-500">Signal: STRONG BUY / EXPAND</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-4">Prediction Model: LLama-Trend-v3. Data last updated: 2025-10-20.</p>
+                        </div>
+
+                        <div class="data-card bg-white p-6 rounded-xl border-l-4 border-yellow-500">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-3 flex items-center">
+                                <span data-lucide="award" class="w-6 h-6 text-yellow-500 mr-2"></span>
+                                Strategic Recommendation
+                            </h3>
+                            <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+                                <p class="text-xl font-bold text-yellow-700 mb-2">ACTION: Prioritize Automation Investment</p>
+                                <p class="text-gray-700">Competitor data shows a 25% adoption rate for automated packaging in the Surat region. To maintain price parity and scale for the predicted +15% demand surge in HSN 6204, a capital expenditure on automated cutting/stitching machines is recommended within the next 60 days to reduce lead time (currently 8 weeks).</p>
+                                <p class="text-sm font-semibold text-yellow-600 mt-2">Estimated ROI: 18 months, 6% reduction in COGS.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="xl:col-span-1 space-y-6">
+
+                        <div class="data-card bg-white p-6 rounded-xl h-[244px] border-l-4 border-blue-500">
+                            <h3 class="text-xl font-bold text-gray-800 mb-3 flex items-center">
+                                <span data-lucide="gauge" class="w-5 h-5 text-blue-500 mr-2"></span>
+                                Compliance Vulnerability Prediction
+                            </h3>
+                            <p class="text-sm text-gray-600 mb-4">Predicted risk based on recent policy velocity in Maharashtra.</p>
+                            <div class="text-center bg-blue-50 p-4 rounded-lg mb-4">
+                                <p class="text-3xl font-extrabold text-blue-700">Risk Score: 4/10</p>
+                                <p class="text-sm text-gray-600 mt-1">Predicted Score Next 90 Days: <span class="font-bold text-orange-600">6/10</span> (Moderate increase)</p>
+                            </div>
+                            <div class="flex items-start text-xs text-gray-700">
+                                <span data-lucide="info" class="w-4 h-4 flex-shrink-0 mr-2 text-blue-500"></span>
+                                <p>Driver: Upcoming mandatory labor law adjustments requiring documentation updates by March.</p>
+                            </div>
+                        </div>
+
+                        <div class="data-card bg-white p-6 rounded-xl h-[244px] border-l-4 border-orange-500">
+                            <h3 class="text-xl font-bold text-gray-800 mb-3 flex items-center">
+                                <span data-lucide="trending-up" class="w-5 h-5 text-orange-500 mr-2"></span>
+                                Competitor Tech Adoption
+                            </h3>
+                            <p class="text-sm text-gray-600 mb-4">Reverse-tracking of unregistered MSME process upgrades.</p>
+                            <div class="flex justify-around items-center text-center">
+                                <div>
+                                    <p class="text-4xl font-extrabold text-orange-700">25%</p>
+                                    <p class="text-sm text-gray-600">Automated Packaging</p>
+                                </div>
+                                <div class="w-px h-12 bg-gray-200"></div>
+                                <div>
+                                    <p class="text-4xl font-extrabold text-purple-700">12%</p>
+                                    <p class="text-sm text-gray-600">AI Inventory Mgmt</p>
+                                </div>
+                                <div class="w-px h-12 bg-gray-200"></div>
+                                <div>
+                                    <p class="text-4xl font-extrabold text-green-700">5%</p>
+                                    <p class="text-sm text-gray-600">Renewable Energy</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div id="settings-view" class="view-content hidden">
+                <header class="mb-8 dashboard-header">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center">
+                        <span data-lucide="settings" class="w-8 h-8 text-purple-600 mr-3"></span>
+                        User & Application Settings
+                    </h2>
+                    <p class="text-gray-600 mt-1">Manage your tracked products, alert preferences, and regional focus.</p>
+                </header>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+                    <div class="data-card bg-white p-6 rounded-xl border-l-4 border-red-500">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span data-lucide="package" class="w-6 h-6 text-red-500 mr-2"></span>
+                            Tracked HSN Codes
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">These codes define the market segments you receive alerts for.</p>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border-l-4 border-green-500">
+                                <div class="font-semibold text-gray-800">6204 (Textile Garments)</div>
+                                <button class="text-red-500 hover:text-red-700 transition" onclick="alert('Removed HSN 6204')">
+                                    <span data-lucide="trash-2" class="w-5 h-5"></span>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border-l-4 border-orange-500">
+                                <div class="font-semibold text-gray-800">3926 (Plastic Articles)</div>
+                                <button class="text-red-500 hover:text-red-700 transition" onclick="alert('Removed HSN 3926')">
+                                    <span data-lucide="trash-2" class="w-5 h-5"></span>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                                <div class="font-semibold text-gray-800">8471 (Processing Units)</div>
+                                <button class="text-red-500 hover:text-red-700 transition" onclick="alert('Removed HSN 8471')">
+                                    <span data-lucide="trash-2" class="w-5 h-5"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <input type="text" placeholder="Enter new HSN code (e.g., 9608)" class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <button class="px-6 py-3 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition" onclick="alert('HSN code added successfully!')">
+                                Add Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="data-card bg-white p-6 rounded-xl border-l-4 border-purple-500">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span data-lucide="bell" class="w-6 h-6 text-purple-500 mr-2"></span>
+                            Notification Preferences
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">Choose which alerts you wish to receive and how often.</p>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between border-b pb-3">
+                                <label for="regulatory" class="font-medium text-gray-700">Regulatory & Policy Alerts</label>
+                                <input type="checkbox" id="regulatory" checked class="h-6 w-6 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                            </div>
+                            <div class="flex items-center justify-between border-b pb-3">
+                                <label for="supply" class="font-medium text-gray-700">Supply Chain Risk Alerts</label>
+                                <input type="checkbox" id="supply" class="h-6 w-6 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="competitor" class="font-medium text-gray-700">Competitor Tracking Alerts</label>
+                                <input type="checkbox" id="competitor" checked class="h-6 w-6 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label for="frequency" class="block text-sm font-medium text-gray-700 mb-2">Alert Frequency</label>
+                            <select id="frequency" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                <option>Daily Digest (Recommended)</option>
+                                <option>Weekly Summary</option>
+                                <option>Real-time (High Volume)</option>
+                            </select>
+                        </div>
+
+                        <button class="mt-6 w-full px-4 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition" onclick="alert('Notification settings saved!')">
+                            Save Preferences
+                        </button>
+                    </div>
+
+                    <div class="xl:col-span-2 data-card bg-white p-6 rounded-xl border-l-4 border-sky-500">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span data-lucide="map" class="w-6 h-6 text-sky-500 mr-2"></span>
+                            Regional Focus
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-4">Customize data filtering to your primary operational areas.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="primary-state" class="block text-sm font-medium text-gray-700 mb-2">Primary State</label>
+                                <select id="primary-state" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                    <option>Maharashtra</option>
+                                    <option>Gujarat</option>
+                                    <option>Tamil Nadu</option>
+                                    <option>Delhi NCR</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="secondary-district" class="block text-sm font-medium text-gray-700 mb-2">Secondary District</label>
+                                <select id="secondary-district" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+                                    <option>Surat</option>
+                                    <option>Thane</option>
+                                    <option>Indore</option>
+                                    <option>Pune</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="mt-6 w-full px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 transition" onclick="alert('Regional settings saved!')">
+                            Save Regional Settings
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const viewContents = document.querySelectorAll('.view-content');
+            let currentView = 'dashboard'; // Initial view
+
+            const switchView = (viewName) => {
+                // 1. Hide all views and remove active class from all links
+                viewContents.forEach(view => {
+                    view.classList.add('hidden');
+                });
+                navLinks.forEach(link => {
+                    link.classList.remove('nav-active');
+                });
+
+                // 2. Show the selected view and set the active class
+                const targetView = document.getElementById(`${viewName}-view`);
+                const targetLink = document.querySelector(`.nav-link[data-view="${viewName}"]`);
+
+                if (targetView) {
+                    targetView.classList.remove('hidden');
+                }
+                if (targetLink) {
+                    targetLink.classList.add('nav-active');
+                }
+                currentView = viewName;
+            };
+
+            // Event listeners for navigation links
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const viewName = e.currentTarget.getAttribute('data-view');
+                    
+                    // Supported views
+                    if (viewName === 'dashboard' || viewName === 'insights' || viewName === 'settings') {
+                         switchView(viewName);
+                    } else {
+                        // For the other mock links (MSME Data)
+                        alert(`Currently viewing: ${viewName}. Only Dashboard, Insights, and Settings are implemented.`);
+                    }
+                });
+            });
+
+            // Set initial view to Dashboard
+            switchView('dashboard');
+        });
+    </script>
+
+</body>
+</html>
